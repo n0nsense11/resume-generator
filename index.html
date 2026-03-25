@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的简历</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --border: #d1d5db;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .header-title { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .header-center { display: flex; align-items: center; gap: 8px; }
+    .theme-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .theme-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; flex-wrap: wrap; }
+    .theme-tab { padding: 6px 14px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all 0.2s; white-space: nowrap; }
+    .theme-tab:hover { color: var(--text); background: white; }
+    .theme-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .header-actions { display: flex; gap: 12px; }
+    .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--bg); }
+
+    main { max-width: 1400px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 500px 1fr; gap: 24px; }
+    @media (max-width: 1050px) { main { grid-template-columns: 1fr; } }
+
+    .editor { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 20px; max-height: calc(100vh - 110px); overflow-y: auto; }
+    .editor::-webkit-scrollbar { width: 6px; }
+    .editor::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    .section { margin-bottom: 24px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+    .section-drag { cursor: grab; color: #ccc; padding: 4px; font-size: 16px; }
+    .section-action { font-size: 12px; color: var(--primary); cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .section-action:hover { background: var(--bg); }
+
+    .photo-upload { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding: 16px; background: var(--bg); border-radius: 8px; }
+    .photo-container { position: relative; flex-shrink: 0; }
+    .photo-placeholder { width: 80px; height: 100px; border: 1px dashed var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; text-align: center; cursor: pointer; }
+    .photo-preview { width: 80px; height: 100px; border: 1px solid var(--border); border-radius: 4px; object-fit: cover; background: #f9fafb; cursor: pointer; }
+    .photo-resizer { position: absolute; border: 2px solid var(--primary); background: transparent; cursor: nwse-resize; width: 16px; height: 16px; right: -8px; bottom: -8px; border-radius: 50%; display: none; }
+    .photo-container:hover .photo-resizer { display: block; }
+    .photo-info { flex: 1; }
+    .photo-hint { font-size: 12px; color: #666; margin-top: 4px; }
+
+    .info-grid { display: flex; flex-direction: column; gap: 8px; }
+    .info-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .info-field { display: flex; flex-direction: column; gap: 3px; }
+    .info-field .field-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+    .info-field .field-input { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: white; width: 100%; box-sizing: border-box; }
+    .info-field .field-input:focus { outline: none; border-color: var(--primary); }
+
+    .entry-card { background: var(--bg); border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: grab; }
+    .entry-card:active { cursor: grabbing; }
+    .entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .entry-title { font-size: 14px; font-weight: 600; }
+    .entry-delete { color: var(--danger); cursor: pointer; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
+    .entry-delete:hover { background: #fef2f2; }
+    .entry-drag { color: #ccc; margin-right: 8px; }
+    .entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .entry-grid-full { grid-column: 1 / -1; }
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+    .form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+    .form-input:focus { outline: none; border-color: var(--primary); }
+    textarea.form-input { resize: vertical; min-height: 80px; }
+
+    .preview { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 40px; min-height: 800px; }
+    .resume { max-width: 800px; margin: 0 auto; font-size: 14px; line-height: 1.6; }
+
+    /* ===== 共享组件样式 ===== */
+    .resume-header { display: flex; gap: 20px; margin-bottom: 16px; align-items: flex-start; }
+    .resume-photo-wrap { position: relative; flex-shrink: 0; }
+    .resume-photo { object-fit: cover; cursor: pointer; }
+    .resume-photo-wrap.active .resume-photo { border-style: dashed; }
+    .resume-photo-resizer { position: absolute; width: 16px; height: 16px; right: -8px; bottom: -8px; border-radius: 50%; cursor: nwse-resize; display: none; }
+    .resume-photo-wrap.active .resume-photo-resizer { display: block; }
+    .resume-header-info { flex: 1; }
+    .resume-title { margin-bottom: 6px; color: #222; }
+    .resume-divider { height: 1px; background: #ddd; margin: 12px 0 14px 0; }
+    .resume-divider-double { height: 3px; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; margin: 10px 0 14px 0; }
+    .resume-basic-info { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 14px; }
+    .resume-basic-item { display: flex; align-items: baseline; padding: 4px 16px 4px 0; }
+    .resume-basic-item .bi-label { font-size: 12px; margin-right: 5px; flex-shrink: 0; }
+    .resume-basic-item .bi-sep { color: #ccc; margin-right: 5px; }
+    .resume-basic-item .bi-value { font-size: 13px; }
+    .resume-section { margin-bottom: 18px; }
+    .resume-section-title { padding-bottom: 5px; margin-bottom: 12px; letter-spacing: 1px; }
+    .resume-item { margin-bottom: 14px; }
+    .resume-item-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .resume-item-title { font-weight: 600; font-size: 14px; }
+    .resume-item-time { font-size: 12px; }
+    .resume-item-sub { font-size: 13px; margin-bottom: 4px; }
+    .resume-item-desc { font-size: 13px; white-space: pre-wrap; }
+    .resume-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .resume-skill { padding: 2px 10px; border-radius: 3px; font-size: 12px; }
+    .resume-custom-section { margin-bottom: 18px; }
+    .resume-custom-title { padding-bottom: 5px; margin-bottom: 12px; letter-spacing: 1px; }
+    .custom-section-card { background: #f0f9ff; border: 1px dashed #93c5fd; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+
+    /* ===== 主题1: 简约经典 ===== */
+    .theme-minimal .resume-photo { width: 100px; height: 120px; border: 1px solid #ccc; border-radius: 4px; background: #f3f4f6; }
+    .theme-minimal .resume-photo-resizer { background: #666; }
+    .theme-minimal .resume-photo-wrap.active .resume-photo { border-color: var(--primary); }
+    .theme-minimal .resume-title { font-size: 26px; font-weight: 700; text-align: center; letter-spacing: 4px; }
+    .theme-minimal .resume-divider-double { border-color: #333; }
+    .theme-minimal .resume-basic-item .bi-label { color: #888; }
+    .theme-minimal .resume-basic-item .bi-value { color: #222; }
+    .theme-minimal .resume-section-title { font-size: 15px; font-weight: 700; color: #222; border-bottom: 1.5px solid #333; }
+    .theme-minimal .resume-item-title { color: #222; }
+    .theme-minimal .resume-item-time { color: #888; }
+    .theme-minimal .resume-item-sub { color: #666; }
+    .theme-minimal .resume-item-desc { color: #444; }
+    .theme-minimal .resume-skill { background: #eee; color: #333; }
+    .theme-minimal .resume-custom-title { font-size: 15px; font-weight: 700; color: #222; border-bottom: 1.5px solid #333; }
+
+    /* ===== 主题2: 专业商务 ===== */
+    .theme-professional .resume-photo { width: 100px; height: 120px; border: 3px solid #1a56db; border-radius: 6px; background: #f3f4f6; }
+    .theme-professional .resume-photo-resizer { background: #1a56db; }
+    .theme-professional .resume-photo-wrap.active .resume-photo { border-color: var(--primary); }
+    .theme-professional .resume-title { font-size: 26px; font-weight: 800; color: #1a56db; letter-spacing: 3px; }
+    .theme-professional .resume-divider { background: linear-gradient(90deg, #1a56db, #93c5fd); height: 2px; border-radius: 1px; }
+    .theme-professional .resume-basic-info { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; }
+    .theme-professional .resume-basic-item { padding: 3px 12px 3px 0; }
+    .theme-professional .resume-basic-item .bi-label { color: #1a56db; font-weight: 700; }
+    .theme-professional .resume-basic-item .bi-sep { color: #93c5fd; font-weight: bold; }
+    .theme-professional .resume-basic-item .bi-value { color: #1e293b; }
+    .theme-professional .resume-section-title { font-size: 15px; font-weight: 700; color: #1a56db; border-bottom: none; border-left: 4px solid #1a56db; padding-left: 10px; }
+    .theme-professional .resume-item { padding-left: 14px; border-left: 2px solid #e2e8f0; }
+    .theme-professional .resume-item-title { color: #1e293b; }
+    .theme-professional .resume-item-time { color: #64748b; }
+    .theme-professional .resume-item-sub { color: #475569; }
+    .theme-professional .resume-item-desc { color: #334155; }
+    .theme-professional .resume-skill { background: #dbeafe; color: #1a56db; border-radius: 20px; font-weight: 500; }
+    .theme-professional .resume-custom-title { font-size: 15px; font-weight: 700; color: #1a56db; border-bottom: none; border-left: 4px solid #1a56db; padding-left: 10px; }
+
+    /* ===== 主题3: 古典典雅 ===== */
+    .theme-elegant .resume-photo { width: 100px; height: 120px; border: 4px double #8b4513; border-radius: 2px; background: #f3f4f6; }
+    .theme-elegant .resume-photo-resizer { background: #8b4513; }
+    .theme-elegant .resume-photo-wrap.active .resume-photo { border-color: var(--primary); }
+    .theme-elegant .resume-title { font-size: 26px; font-weight: 700; text-align: center; font-family: Georgia, serif; letter-spacing: 6px; color: #3d2914; }
+    .theme-elegant .resume-divider-double { border-color: #8b4513; height: 2px; }
+    .theme-elegant .resume-basic-info { justify-content: center; }
+    .theme-elegant .resume-basic-item { padding: 4px 16px; border-right: 1px solid #d4c4a8; }
+    .theme-elegant .resume-basic-item:last-child { border-right: none; }
+    .theme-elegant .resume-basic-item .bi-label { color: #8b6914; font-family: Georgia, serif; font-weight: 600; }
+    .theme-elegant .resume-basic-item .bi-value { color: #3d2914; }
+    .theme-elegant .resume-section-title { font-size: 15px; font-weight: 700; color: #3d2914; border-bottom: 1px solid #d4c4a8; font-family: Georgia, serif; letter-spacing: 3px; }
+    .theme-elegant .resume-item-title { color: #3d2914; font-family: Georgia, serif; }
+    .theme-elegant .resume-item-time { color: #8b6914; }
+    .theme-elegant .resume-item-sub { color: #6b5a3e; }
+    .theme-elegant .resume-item-desc { color: #4a3f2f; }
+    .theme-elegant .resume-skill { border: 1px solid #d4c4a8; color: #3d2914; background: #faf6ee; border-radius: 2px; }
+    .theme-elegant .resume-custom-title { font-size: 15px; font-weight: 700; color: #3d2914; border-bottom: 1px solid #d4c4a8; font-family: Georgia, serif; letter-spacing: 3px; }
+
+    /* ===== 主题4: 报纸风格 ===== */
+    .theme-newspaper .resume-photo { width: 90px; height: 110px; border: 1px solid #888; border-radius: 0; background: #f3f4f6; }
+    .theme-newspaper .resume-photo-resizer { background: #888; }
+    .theme-newspaper .resume-photo-wrap.active .resume-photo { border-color: var(--primary); }
+    .theme-newspaper .resume-title { font-size: 26px; font-weight: 700; text-align: center; font-family: 'Times New Roman', Georgia, serif; letter-spacing: 6px; color: #111; border-bottom: 2px solid #111; padding-bottom: 8px; }
+    .theme-newspaper .resume-divider { display: none; }
+    .theme-newspaper .resume-divider-double { display: none; }
+    .theme-newspaper .resume-basic-info { flex-direction: column; gap: 2px; margin-bottom: 12px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 8px 0; }
+    .theme-newspaper .resume-basic-item { justify-content: flex-start; padding: 2px 20px 2px 0; border-right: none; }
+    .theme-newspaper .resume-basic-item:first-child { padding-left: 0; }
+    .theme-newspaper .resume-basic-item:last-child { border-right: none; }
+    .theme-newspaper .resume-basic-item .bi-label { color: #555; font-family: 'Times New Roman', serif; font-size: 12px; }
+    .theme-newspaper .resume-basic-item .bi-sep { color: #ccc; }
+    .theme-newspaper .resume-basic-item .bi-value { color: #111; font-family: 'Times New Roman', serif; font-size: 13px; }
+    .theme-newspaper .resume-section-title { font-size: 14px; font-weight: 700; color: #111; border-bottom: 1px solid #111; font-family: 'Times New Roman', serif; letter-spacing: 3px; text-transform: uppercase; }
+    .theme-newspaper .resume-item-title { color: #111; font-family: 'Times New Roman', serif; font-size: 14px; }
+    .theme-newspaper .resume-item-time { color: #666; font-family: 'Times New Roman', serif; }
+    .theme-newspaper .resume-item-sub { color: #555; font-family: 'Times New Roman', serif; }
+    .theme-newspaper .resume-item-desc { color: #333; font-family: 'Times New Roman', serif; font-size: 13px; line-height: 1.7; }
+    .theme-newspaper .resume-skill { background: transparent; color: #111; border: 1px solid #555; border-radius: 0; font-family: 'Times New Roman', serif; }
+    .theme-newspaper .resume-custom-title { font-size: 14px; font-weight: 700; color: #111; border-bottom: 1px solid #111; font-family: 'Times New Roman', serif; letter-spacing: 3px; text-transform: uppercase; }
+
+    /* ===== 主题5: 素雅灰调 ===== */
+    .theme-muted .resume-photo { width: 90px; height: 110px; border: 1px solid #ddd; border-radius: 2px; background: #f8f8f8; }
+    .theme-muted .resume-photo-resizer { background: #aaa; }
+    .theme-muted .resume-photo-wrap.active .resume-photo { border-color: var(--primary); }
+    .theme-muted .resume-title { font-size: 24px; font-weight: 600; text-align: center; color: #444; letter-spacing: 6px; }
+    .theme-muted .resume-divider { height: 1px; background: #ddd; margin: 8px 0 12px 0; }
+    .theme-muted .resume-divider-double { display: none; }
+    .theme-muted .resume-basic-info { flex-direction: column; gap: 0; margin-bottom: 14px; }
+    .theme-muted .resume-basic-item { padding: 5px 0; border-bottom: 1px solid #f0f0f0; justify-content: flex-start; }
+    .theme-muted .resume-basic-item .bi-label { color: #999; font-size: 13px; min-width: 70px; text-align: right; margin-right: 12px; }
+    .theme-muted .resume-basic-item .bi-sep { color: #ddd; margin-right: 12px; }
+    .theme-muted .resume-basic-item .bi-value { color: #444; font-size: 13px; }
+    .theme-muted .resume-section-title { font-size: 13px; font-weight: 600; color: #888; border-bottom: 1px solid #e0e0e0; text-transform: uppercase; letter-spacing: 2px; }
+    .theme-muted .resume-item-title { color: #444; font-weight: 600; }
+    .theme-muted .resume-item-time { color: #aaa; }
+    .theme-muted .resume-item-sub { color: #888; }
+    .theme-muted .resume-item-desc { color: #666; }
+    .theme-muted .resume-skill { background: #f5f5f5; color: #777; border-radius: 2px; }
+    .theme-muted .resume-custom-title { font-size: 13px; font-weight: 600; color: #888; border-bottom: 1px solid #e0e0e0; text-transform: uppercase; letter-spacing: 2px; }
+
+    /* ===== 主题6: 现代商务 ===== */
+    .theme-modern .resume-photo { width: 100px; height: 120px; border: 2px solid #2d3748; border-radius: 8px; background: #f3f4f6; }
+    .theme-modern .resume-photo-resizer { background: #2d3748; }
+    .theme-modern .resume-photo-wrap.active .resume-photo { border-color: var(--primary); }
+    .theme-modern .resume-title { font-size: 26px; font-weight: 800; color: #2d3748; letter-spacing: 2px; }
+    .theme-modern .resume-divider { display: none; }
+    .theme-modern .resume-divider-double { height: 2px; background: #2d3748; border: none; margin: 8px 0 14px 0; }
+    .theme-modern .resume-basic-info { gap: 0; margin-bottom: 14px; background: #f7f8fa; border-radius: 8px; padding: 10px 14px; }
+    .theme-modern .resume-basic-item { padding: 4px 0; }
+    .theme-modern .resume-basic-item .bi-label { color: #718096; font-weight: 600; font-size: 12px; }
+    .theme-modern .resume-basic-item .bi-sep { color: #cbd5e0; }
+    .theme-modern .resume-basic-item .bi-value { color: #2d3748; font-size: 13px; font-weight: 500; }
+    .theme-modern .resume-section-title { font-size: 14px; font-weight: 700; color: #2d3748; border-bottom: 2px solid #2d3748; padding-bottom: 4px; }
+    .theme-modern .resume-item-title { color: #2d3748; }
+    .theme-modern .resume-item-time { color: #718096; }
+    .theme-modern .resume-item-sub { color: #4a5568; }
+    .theme-modern .resume-item-desc { color: #4a5568; }
+    .theme-modern .resume-skill { background: #edf2f7; color: #4a5568; border-radius: 4px; font-weight: 500; }
+    .theme-modern .resume-custom-title { font-size: 14px; font-weight: 700; color: #2d3748; border-bottom: 2px solid #2d3748; padding-bottom: 4px; }
+
+    @media print {
+      header, .editor, .section-drag, .entry-drag, .entry-delete, .section-action, .photo-upload, .theme-tabs, .header-center { display: none !important; }
+      main { display: block !important; padding: 0 !important; }
+      .preview { border: none !important; padding: 0 !important; box-shadow: none !important; border-radius: 0 !important; background: white !important; }
+      .resume-photo { width: 100px !important; height: 120px !important; }
+      @page { size: A4; margin: 12mm; }
+      @page { margin-header: 0; margin-footer: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-title">📄</div>
+      <div class="header-center">
+        <span class="theme-label">主题：</span>
+        <div class="theme-tabs" id="themeTabs">
+          <button class="theme-tab active" data-theme="minimal" onclick="setTheme('minimal')">简约经典</button>
+          <button class="theme-tab" data-theme="professional" onclick="setTheme('professional')">专业商务</button>
+          <button class="theme-tab" data-theme="elegant" onclick="setTheme('elegant')">古典典雅</button>
+          <button class="theme-tab" data-theme="newspaper" onclick="setTheme('newspaper')">报纸风格</button>
+          <button class="theme-tab" data-theme="muted" onclick="setTheme('muted')">素雅灰调</button>
+          <button class="theme-tab" data-theme="modern" onclick="setTheme('modern')">现代商务</button>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="window.print()">🖨️ 打印</button>
+        <button class="btn btn-primary" onclick="exportPDF()">📥 导出PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="editor" id="editor">
+      <!-- Basic Info -->
+      <div class="section" data-section="basic">
+        <div class="section-header">
+          <div class="section-title">基本信息</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div class="photo-upload">
+          <div class="photo-container" id="photoContainer">
+            <div class="photo-placeholder" id="photoPlaceholder">证件照</div>
+            <div class="photo-resizer" id="photoResizer"></div>
+          </div>
+          <div class="photo-info">
+            <input type="file" accept="image/*" id="photoInput" style="display:none" onchange="handlePhotoUpload(event)">
+            <button class="btn btn-outline" onclick="document.getElementById('photoInput').click()">上传证件照</button>
+            <div class="photo-hint">点击照片可调整大小</div>
+          </div>
+        </div>
+        <div class="info-grid" id="infoGrid">
+          <div class="info-row">
+            <div class="info-field">
+              <span class="field-label">姓名</span>
+              <input type="text" class="field-input" id="name" placeholder="李明" oninput="updatePreview()">
+            </div>
+            <div class="info-field">
+              <span class="field-label">性别</span>
+              <input type="text" class="field-input" id="gender" placeholder="男" oninput="updatePreview()">
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-field">
+              <span class="field-label">出生年月</span>
+              <input type="text" class="field-input" id="birth" placeholder="1990.05" oninput="updatePreview()">
+            </div>
+            <div class="info-field">
+              <span class="field-label">所在城市</span>
+              <input type="text" class="field-input" id="location" placeholder="北京" oninput="updatePreview()">
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-field">
+              <span class="field-label">婚姻状况</span>
+              <input type="text" class="field-input" id="marriage" placeholder="已婚/未婚" oninput="updatePreview()">
+            </div>
+            <div class="info-field">
+              <span class="field-label">民族</span>
+              <input type="text" class="field-input" id="ethnicity" placeholder="汉族" oninput="updatePreview()">
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-field">
+              <span class="field-label">手机</span>
+              <input type="text" class="field-input" id="phone" placeholder="138-xxxx-xxxx" oninput="updatePreview()">
+            </div>
+            <div class="info-field">
+              <span class="field-label">邮箱</span>
+              <input type="text" class="field-input" id="email" placeholder="example@email.com" oninput="updatePreview()">
+            </div>
+          </div>
+        </div>
+        <div id="basicExtraList"></div>
+        <div class="section-action" onclick="addBasicExtra()">+ 添加字段（如微信、QQ等）</div>
+      </div>
+
+      <!-- Education -->
+      <div class="section" data-section="education">
+        <div class="section-header">
+          <div class="section-title">教育背景</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div id="education-list"></div>
+        <div class="section-action" onclick="addEntry('education')">+ 添加</div>
+      </div>
+
+      <!-- Work -->
+      <div class="section" data-section="work">
+        <div class="section-header">
+          <div class="section-title">工作经验</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div id="work-list"></div>
+        <div class="section-action" onclick="addEntry('work')">+ 添加</div>
+      </div>
+
+      <!-- Project -->
+      <div class="section" data-section="project">
+        <div class="section-header">
+          <div class="section-title">项目经验</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div id="project-list"></div>
+        <div class="section-action" onclick="addEntry('project')">+ 添加</div>
+      </div>
+
+      <!-- Skills -->
+      <div class="section" data-section="skills">
+        <div class="section-header">
+          <div class="section-title">技能特长</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div id="skills-list"></div>
+        <div class="section-action" onclick="addEntry('skills')">+ 添加</div>
+      </div>
+
+      <!-- Cert -->
+      <div class="section" data-section="cert">
+        <div class="section-header">
+          <div class="section-title">证书</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div id="cert-list"></div>
+        <div class="section-action" onclick="addEntry('cert')">+ 添加</div>
+      </div>
+
+      <!-- Evaluation -->
+      <div class="section" data-section="evaluation">
+        <div class="section-header">
+          <div class="section-title">自我评价</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <textarea class="form-input" id="evaluation" rows="4" placeholder="简单描述你的优势和特长..." oninput="updatePreview()"></textarea>
+      </div>
+
+      <!-- Custom -->
+      <div class="section" data-section="custom">
+        <div class="section-header">
+          <div class="section-title">自定义内容</div>
+          <div class="section-drag" title="拖动调整顺序">⋮⋮</div>
+        </div>
+        <div id="custom-list"></div>
+        <div class="section-action" onclick="addCustomSection()">+ 添加自定义栏</div>
+      </div>
+    </div>
+
+    <div class="preview" id="preview">
+      <div class="resume theme-minimal" id="resume"></div>
+    </div>
+  </main>
+
+  <script>
+    let data = { education: [], work: [], project: [], skills: [], cert: [], custom: [], basicExtra: [] };
+    let sectionOrder = ['basic', 'education', 'work', 'project', 'skills', 'cert', 'evaluation', 'custom'];
+    let photoDataUrl = null;
+    let photoWidth = 100;
+    let photoHeight = 120;
+    let resumePhotoActive = false;
+    let currentTheme = 'minimal';
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.querySelectorAll('.theme-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.theme-tab[data-theme="${theme}"]`).classList.add('active');
+      document.getElementById('resume').className = `resume theme-${theme}`;
+    }
+
+    // Photo upload
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        photoDataUrl = e.target.result;
+        const ph = document.getElementById('photoPlaceholder');
+        ph.innerHTML = `<img src="${photoDataUrl}" style="width:80px;height:100px;object-fit:cover;border-radius:4px;">`;
+        ph.classList.remove('photo-placeholder');
+        ph.classList.add('photo-preview');
+        ph.id = 'photoPreviewEl';
+        updatePreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    let photoResizing = false;
+    let photoResizeStart = { x: 0, y: 0, w: 80, h: 100 };
+    document.getElementById('photoResizer').addEventListener('mousedown', e => {
+      photoResizing = true;
+      photoResizeStart = { x: e.clientX, y: e.clientY, w: 80, h: 100 };
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!photoResizing) return;
+      const el = document.getElementById('photoPreviewEl');
+      if (el && el.tagName === 'IMG') {
+        el.style.width = Math.max(50, Math.min(150, photoResizeStart.w + e.clientX - photoResizeStart.x)) + 'px';
+        el.style.height = Math.max(60, Math.min(180, photoResizeStart.h + e.clientY - photoResizeStart.y)) + 'px';
+      }
+    });
+    document.addEventListener('mouseup', () => { photoResizing = false; });
+
+    // Resume photo resize
+    let resumePhotoResizing = false;
+    let resumePhotoResizeStart = { x: 0, y: 0, w: 100, h: 120 };
+    function setupResumePhotoResize() {
+      const wrap = document.querySelector('.resume-photo-wrap');
+      const resizer = wrap && wrap.querySelector('.resume-photo-resizer');
+      if (!wrap) return;
+      wrap.addEventListener('click', e => {
+        if (e.target === resizer) return;
+        wrap.classList.toggle('active');
+        resumePhotoActive = !resumePhotoActive;
+      });
+      if (resizer) {
+        resizer.addEventListener('mousedown', e => {
+          resumePhotoResizing = true;
+          resumePhotoResizeStart = { x: e.clientX, y: e.clientY, w: photoWidth, h: photoHeight };
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      }
+      document.addEventListener('mousemove', e => {
+        if (!resumePhotoResizing) return;
+        photoWidth = Math.max(60, Math.min(150, resumePhotoResizeStart.w + e.clientX - resumePhotoResizeStart.x));
+        photoHeight = Math.max(72, Math.min(180, resumePhotoResizeStart.h + e.clientY - resumePhotoResizeStart.y));
+        const img = wrap.querySelector('.resume-photo');
+        if (img) { img.style.width = photoWidth + 'px'; img.style.height = photoHeight + 'px'; }
+      });
+      document.addEventListener('mouseup', () => { resumePhotoResizing = false; });
+    }
+
+    // Basic extra
+    function addBasicExtra() {
+      const id = Date.now();
+      data.basicExtra.push({ id, label: '', value: '' });
+      renderBasicExtra();
+      updatePreview();
+    }
+    function deleteBasicExtra(id) {
+      data.basicExtra = data.basicExtra.filter(s => s.id !== id);
+      renderBasicExtra();
+      updatePreview();
+    }
+    function updateBasicExtra(id, field, value) {
+      const item = data.basicExtra.find(s => s.id === id);
+      if (item) { item[field] = value; updatePreview(); }
+    }
+    function renderBasicExtra() {
+      document.getElementById('basicExtraList').innerHTML = data.basicExtra.map(item => `
+        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
+          <input type="text" class="form-input" style="width:100px;" value="${item.label}" onchange="updateBasicExtra(${item.id},'label',this.value)" placeholder="标签">
+          <input type="text" class="form-input" style="flex:1;" value="${item.value}" onchange="updateBasicExtra(${item.id},'value',this.value)" placeholder="内容">
+          <button class="btn btn-outline" style="padding:6px 12px;font-size:12px;" onclick="deleteBasicExtra(${item.id})">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // Entries
+    function createEntryCard(type, item, index) {
+      if (type === 'education') return `<div class="entry-card" draggable="true" data-type="education" data-index="${index}"><div class="entry-header"><span class="entry-drag">⋮⋮</span><span class="entry-title">${item.school || '新条目'}</span><span class="entry-delete" onclick="deleteEntry('education',${index})">删除</span></div><div class="entry-grid"><div class="form-group"><label class="form-label">时间</label><input type="text" class="form-input" value="${item.time||''}" onchange="updateEntry('education',${index},'time',this.value)" placeholder="2011.09 - 2015.06"></div><div class="form-group"><label class="form-label">学校</label><input type="text" class="form-input" value="${item.school||''}" onchange="updateEntry('education',${index},'school',this.value)" placeholder="北京大学"></div><div class="form-group"><label class="form-label">专业</label><input type="text" class="form-input" value="${item.major||''}" onchange="updateEntry('education',${index},'major',this.value)" placeholder="计算机科学与技术"></div><div class="form-group"><label class="form-label">学历</label><input type="text" class="form-input" value="${item.degree||''}" onchange="updateEntry('education',${index},'degree',this.value)" placeholder="本科"></div></div></div>`;
+      if (type === 'work') return `<div class="entry-card" draggable="true" data-type="work" data-index="${index}"><div class="entry-header"><span class="entry-drag">⋮⋮</span><span class="entry-title">${item.company || '新条目'}</span><span class="entry-delete" onclick="deleteEntry('work',${index})">删除</span></div><div class="entry-grid"><div class="form-group"><label class="form-label">时间</label><input type="text" class="form-input" value="${item.time||''}" onchange="updateEntry('work',${index},'time',this.value)" placeholder="2020.07 - 至今"></div><div class="form-group"><label class="form-label">公司</label><input type="text" class="form-input" value="${item.company||''}" onchange="updateEntry('work',${index},'company',this.value)" placeholder="某某科技有限公司"></div><div class="form-group"><label class="form-label">职位</label><input type="text" class="form-input" value="${item.position||''}" onchange="updateEntry('work',${index},'position',this.value)" placeholder="前端开发工程师"></div><div class="form-group"><label class="form-label">工作性质</label><select class="form-input" onchange="updateEntry('work',${index},'jobType',this.value)"><option value="">请选择</option><option value="全职" ${item.jobType==='全职'?'selected':''}>全职</option><option value="实习" ${item.jobType==='实习'?'selected':''}>实习</option></select></div><div class="entry-grid-full"><label class="form-label">工作描述</label><textarea class="form-input" onchange="updateEntry('work',${index},'description',this.value)" placeholder="负责公司前端技术选型与架构设计...">${item.description||''}</textarea></div></div></div>`;
+      if (type === 'project') return `<div class="entry-card" draggable="true" data-type="project" data-index="${index}"><div class="entry-header"><span class="entry-drag">⋮⋮</span><span class="entry-title">${item.name || '新项目'}</span><span class="entry-delete" onclick="deleteEntry('project',${index})">删除</span></div><div class="entry-grid"><div class="form-group"><label class="form-label">时间</label><input type="text" class="form-input" value="${item.time||''}" onchange="updateEntry('project',${index},'time',this.value)" placeholder="2022.01 - 2022.06"></div><div class="form-group"><label class="form-label">项目名称</label><input type="text" class="form-input" value="${item.name||''}" onchange="updateEntry('project',${index},'name',this.value)" placeholder="电商平台后台系统"></div><div class="entry-grid-full"><label class="form-label">项目描述</label><textarea class="form-input" onchange="updateEntry('project',${index},'description',this.value)" placeholder="负责前端架构设计与核心功能开发...">${item.description||''}</textarea></div><div class="entry-grid-full"><label class="form-label">项目成果</label><textarea class="form-input" onchange="updateEntry('project',${index},'result',this.value)" placeholder="提升了页面加载速度50%...">${item.result||''}</textarea></div></div></div>`;
+      if (type === 'skills') return `<div class="entry-card" draggable="true" data-type="skills" data-index="${index}"><div class="entry-header"><span class="entry-drag">⋮⋮</span><span class="entry-title">${item.category || '新技能'}</span><span class="entry-delete" onclick="deleteEntry('skills',${index})">删除</span></div><div class="form-group"><label class="form-label">技能分类</label><input type="text" class="form-input" value="${item.category||''}" onchange="updateEntry('skills',${index},'category',this.value)" placeholder="前端开发"></div><div class="form-group"><label class="form-label">技能详情（逗号分隔）</label><input type="text" class="form-input" value="${item.items||''}" onchange="updateEntry('skills',${index},'items',this.value)" placeholder="HTML5, CSS3, JavaScript"></div></div>`;
+      if (type === 'cert') return `<div class="entry-card" draggable="true" data-type="cert" data-index="${index}"><div class="entry-header"><span class="entry-drag">⋮⋮</span><span class="entry-title">${item.name || '新证书'}</span><span class="entry-delete" onclick="deleteEntry('cert',${index})">删除</span></div><div class="entry-grid"><div class="form-group"><label class="form-label">证书名称</label><input type="text" class="form-input" value="${item.name||''}" onchange="updateEntry('cert',${index},'name',this.value)" placeholder="PMP项目管理专业认证"></div><div class="form-group"><label class="form-label">获得时间</label><input type="text" class="form-input" value="${item.time||''}" onchange="updateEntry('cert',${index},'time',this.value)" placeholder="2023.05"></div></div></div>`;
+    }
+    function addEntry(type) {
+      const templates = {
+        education: { time:'', school:'', major:'', degree:'' },
+        work: { time:'', company:'', position:'', jobType:'', description:'' },
+        project: { time:'', name:'', description:'', result:'' },
+        skills: { category:'', items:'' },
+        cert: { name:'', time:'' }
+      };
+      data[type].push({...templates[type]});
+      renderEntries(type);
+      updatePreview();
+    }
+    function deleteEntry(type, index) { data[type].splice(index, 1); renderEntries(type); updatePreview(); }
+    function updateEntry(type, index, field, value) { data[type][index][field] = value; renderEntries(type); updatePreview(); }
+    function renderEntries(type) { document.getElementById(`${type}-list`).innerHTML = data[type].map((item, index) => createEntryCard(type, item, index)).join(''); }
+
+    function addCustomSection() {
+      const id = Date.now();
+      data.custom.push({ id, title: '', content: '' });
+      renderCustomSections();
+      updatePreview();
+    }
+    function deleteCustomSection(id) { data.custom = data.custom.filter(s => s.id !== id); renderCustomSections(); updatePreview(); }
+    function updateCustomSection(id, field, value) { const section = data.custom.find(s => s.id === id); if (section) { section[field] = value; updatePreview(); } }
+    function renderCustomSections() {
+      document.getElementById('custom-list').innerHTML = data.custom.map(section => `
+        <div class="custom-section-card">
+          <div class="entry-header">
+            <span class="entry-drag">⋮⋮</span>
+            <span class="entry-title">${section.title || '自定义栏'}</span>
+            <span class="entry-delete" onclick="deleteCustomSection(${section.id})">删除</span>
+          </div>
+          <div class="form-group"><label class="form-label">栏目标题</label><input type="text" class="form-input" value="${section.title||''}" onchange="updateCustomSection(${section.id},'title',this.value)" placeholder="例如：获奖情况"></div>
+          <div class="form-group"><label class="form-label">内容</label><textarea class="form-input" onchange="updateCustomSection(${section.id},'content',this.value)" placeholder="输入内容...">${section.content||''}</textarea></div>
+        </div>
+      `).join('');
+    }
+
+    function getInfo() {
+      return {
+        name: document.getElementById('name').value,
+        gender: document.getElementById('gender').value,
+        birth: document.getElementById('birth').value,
+        location: document.getElementById('location').value,
+        marriage: document.getElementById('marriage').value,
+        ethnicity: document.getElementById('ethnicity').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        evaluation: document.getElementById('evaluation').value
+      };
+    }
+
+    function buildBasicInfoHtml(info, extraItems) {
+      const items = [
+        { label: '姓名', value: info.name },
+        { label: '性别', value: info.gender },
+        { label: '出生年月', value: info.birth },
+        { label: '所在城市', value: info.location },
+        { label: '婚姻状况', value: info.marriage },
+        { label: '民族', value: info.ethnicity },
+        { label: '手机', value: info.phone },
+        { label: '邮箱', value: info.email },
+        ...extraItems.filter(s => s.label && s.value).map(s => ({ label: s.label, value: s.value }))
+      ];
+      return items.map(item => {
+        if (!item.value) return '';
+        return `<div class="resume-basic-item"><span class="bi-label">${item.label}</span><span class="bi-sep">|</span><span class="bi-value">${item.value}</span></div>`;
+      }).join('');
+    }
+
+    function updatePreview() {
+      const info = getInfo();
+      const resume = document.getElementById('resume');
+      const extraItems = data.basicExtra;
+      resume.className = `resume theme-${currentTheme}`;
+
+      let sectionsHtml = '';
+      sectionOrder.forEach(sectionId => {
+        if (sectionId === 'basic') {
+          let h = `<div class="resume-header">`;
+          h += `<div class="resume-photo-wrap" id="resumePhotoWrap">`;
+          if (photoDataUrl) {
+            h += `<img src="${photoDataUrl}" class="resume-photo" style="width:${photoWidth}px;height:${photoHeight}px;">`;
+          } else {
+            h += `<div class="resume-photo" style="width:100px;height:120px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;background:#f3f4f6;">证件照</div>`;
+          }
+          h += `<div class="resume-photo-resizer"></div></div>`;
+          h += `<div class="resume-header-info">`;
+          h += `<div class="resume-title">个人简历</div>`;
+          h += `</div></div>`;
+
+          if (currentTheme === 'minimal' || currentTheme === 'elegant') {
+            h += `<div class="resume-divider-double"></div>`;
+          } else if (currentTheme === 'professional') {
+            h += `<div class="resume-divider"></div>`;
+          } else if (currentTheme === 'muted') {
+            h += `<div class="resume-divider"></div>`;
+          } else if (currentTheme === 'modern') {
+            h += `<div class="resume-divider-double"></div>`;
+          }
+
+          h += `<div class="resume-basic-info">${buildBasicInfoHtml(info, extraItems)}</div>`;
+
+          sectionsHtml += h;
+        }
+
+        if (sectionId === 'education' && data.education.length > 0) {
+          sectionsHtml += `<div class="resume-section"><div class="resume-section-title">教育背景</div>`;
+          data.education.forEach(item => {
+            sectionsHtml += `<div class="resume-item"><div class="resume-item-header"><span class="resume-item-title">${item.school||''}</span><span class="resume-item-time">${item.time||''}</span></div><div class="resume-item-sub">${item.major||''}${item.degree ? ' · ' + item.degree : ''}</div>${item.description?`<div class="resume-item-desc">${item.description}</div>`:''}</div>`;
+          });
+          sectionsHtml += `</div>`;
+        }
+
+        if (sectionId === 'work' && data.work.length > 0) {
+          sectionsHtml += `<div class="resume-section"><div class="resume-section-title">工作经验</div>`;
+          data.work.forEach(item => {
+            sectionsHtml += `<div class="resume-item"><div class="resume-item-header"><span class="resume-item-title">${item.company||''}${item.jobType?` <span style="font-weight:400">( ${item.jobType} )</span>`:''}</span><span class="resume-item-time">${item.time||''}</span></div><div class="resume-item-sub">${item.position||''}</div>${item.description?`<div class="resume-item-desc">${item.description}</div>`:''}</div>`;
+          });
+          sectionsHtml += `</div>`;
+        }
+
+        if (sectionId === 'project' && data.project.length > 0) {
+          sectionsHtml += `<div class="resume-section"><div class="resume-section-title">项目经验</div>`;
+          data.project.forEach(item => {
+            sectionsHtml += `<div class="resume-item"><div class="resume-item-header"><span class="resume-item-title">${item.name||''}</span><span class="resume-item-time">${item.time||''}</span></div>${item.description?`<div class="resume-item-desc">${item.description}</div>`:''}${item.result?`<div class="resume-item-desc" style="color:#888">项目成果：${item.result}</div>`:''}</div>`;
+          });
+          sectionsHtml += `</div>`;
+        }
+
+        if (sectionId === 'skills' && data.skills.length > 0) {
+          sectionsHtml += `<div class="resume-section"><div class="resume-section-title">技能特长</div>`;
+          data.skills.forEach(skill => {
+            if (skill.category || skill.items) {
+              const tags = skill.items ? skill.items.split(',').map(s => `<span class="resume-skill">${s.trim()}</span>`).join('') : '';
+              sectionsHtml += `<div style="margin-bottom:8px">${skill.category ? `<strong>${skill.category}：</strong>` : ''}${tags}</div>`;
+            }
+          });
+          sectionsHtml += `</div>`;
+        }
+
+        if (sectionId === 'cert' && data.cert.length > 0) {
+          sectionsHtml += `<div class="resume-section"><div class="resume-section-title">证书</div>`;
+          data.cert.forEach(item => { sectionsHtml += `<div class="resume-item-desc">• ${item.name||''}${item.time ? ` <span class="resume-item-time">${item.time}</span>` : ''}</div>`; });
+          sectionsHtml += `</div>`;
+        }
+
+        if (sectionId === 'evaluation' && info.evaluation) {
+          sectionsHtml += `<div class="resume-section"><div class="resume-section-title">自我评价</div><div class="resume-item-desc">${info.evaluation}</div></div>`;
+        }
+
+        if (sectionId === 'custom') {
+          data.custom.forEach(section => {
+            if (section.title && section.content) {
+              sectionsHtml += `<div class="resume-custom-section"><div class="resume-custom-title">${section.title}</div><div class="resume-item-desc">${section.content}</div></div>`;
+            }
+          });
+        }
+      });
+
+      resume.innerHTML = sectionsHtml;
+      setTimeout(setupResumePhotoResize, 0);
+    }
+
+    function exportPDF() { updatePreview(); setTimeout(() => window.print(), 100); }
+
+    // Section drag
+    const editor = document.getElementById('editor');
+    document.querySelectorAll('.section[data-section]').forEach(section => {
+      section.addEventListener('dragstart', e => { section.classList.add('dragging'); e.dataTransfer.setData('text/plain', section.dataset.section); });
+      section.addEventListener('dragend', () => { section.classList.remove('dragging'); });
+      section.addEventListener('dragover', e => { e.preventDefault(); section.classList.add('drag-over'); });
+      section.addEventListener('dragleave', () => section.classList.remove('drag-over'));
+      section.addEventListener('drop', e => {
+        e.preventDefault();
+        section.classList.remove('drag-over');
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const droppedId = section.dataset.section;
+        if (draggedId !== droppedId) {
+          const i1 = sectionOrder.indexOf(draggedId);
+          const i2 = sectionOrder.indexOf(droppedId);
+          sectionOrder.splice(i1, 1);
+          sectionOrder.splice(i2, 0, draggedId);
+          const sections = Array.from(editor.querySelectorAll('.section[data-section]'));
+          sections.sort((a, b) => sectionOrder.indexOf(a.dataset.section) - sectionOrder.indexOf(b.dataset.section));
+          sections.forEach(s => editor.appendChild(s));
+          updatePreview();
+        }
+      });
+    });
+
+    updatePreview();
+  </script>
+</body>
+</html>

@@ -3,7 +3,8 @@
 一个纯前端的在线简历制作工具，无需登录、无需联网，开箱即用。
 
 ## 预览  
-[https://n0nsense11.github.io/resume.html](https://n0nsense11.github.io/resume.html)
+[https://n0nsense11.github.io/resume.html](https://n0nsense11.github.io/resume.html)  
+![](1.png)
 
 ## 功能特性
 
